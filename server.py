@@ -158,7 +158,7 @@ def sensor():
     print("Email Send")
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(sensor,'interval', seconds=10)
+sched.add_job(sensor,'interval', days=1)
 sched.start()
 
 # ROUTES ############################################################
