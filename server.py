@@ -12,24 +12,11 @@ from email.mime.multipart import MIMEMultipart
 app = Flask(__name__)
 
 # FUNCTIONS ############################################################
-def SendEmail(**args):
-    port = 465  # For SSL
-    # password = input("Type your password and press enter: ")
-    fromEmail = "jcardenas.lie@gmail.com"
-    toEmail = "jcardenas.lie@gmail.com"
-    password = "cafetortugascott"
-
-    # Create a secure SSL context
-    context = ssl.create_default_context()
-
-    sender_email = fromEmail
-    receiver_email = toEmail
-
+def CreateMessage(subject, sender, receiver, **args):
     message = MIMEMultipart("alternative")
-    message["Subject"] = "Today's book at Packt"
-    message["From"] = sender_email
-    message["To"] = receiver_email
-
+    message["Subject"] = subject
+    message["From"] = sender
+    message["To"] = receiver
     # Create the plain-text and HTML version of your message
     text = '''\
         Image: {image}
@@ -90,7 +77,7 @@ def SendEmail(**args):
         length = args.get("length"),
         about = args.get("about"),
         features = args.get("features")
-     )
+    )
 
     # Turn these into plain/html MIMEText objects
     part1 = MIMEText(text, "plain")
@@ -100,14 +87,69 @@ def SendEmail(**args):
     # The email client will try to render the last part first
     message.attach(part1)
     message.attach(part2)
+    
+    return message
 
-    # Create secure connection with server and send email
+def SendSecureEmail(**args):
+    # port = 587  # For SSL
+    port = 465  # For SSL
+    
+    # password = input("Type your password and press enter: ")
+    sender_email = "jcardenas.lie@gmail.com"
+
+    # password = "9C5afg6k2D0AUnN1"
+    password = "cafetortugascott"
+
+    receiver_email = "jcardenas.lie@gmail.com"
+
+    subject = "Today's book at Packt"
+
+    # Create a secure SSL context
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+
+    message = CreateMessage(subject, sender_email, receiver_email, **args)
+    
+    with smtplib.SMTP_SSL("smtp-relay.sendinblue.com", port, context=context) as server:
         server.login(sender_email, password)
         server.sendmail(
             sender_email, receiver_email, message.as_string()
         )
+
+def SendUnsecuredEmail(**args):
+    smtp_server = "smtp-relay.sendinblue.com"
+    # smtp_server = "smtp.gmail.com"
+
+    port = 587  # For starttls
+
+    sender_email = "jcardenas.lie@gmail.com"
+    
+    password = "9C5afg6k2D0AUnN1"
+    # password = "cafetortugascott"
+
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+
+    # Try to log in to server and send email
+    try:
+        server = smtplib.SMTP(smtp_server,port)
+        server.ehlo() # Can be omitted
+        server.starttls(context=context) # Secure the connection
+        server.ehlo() # Can be omitted
+        server.login(sender_email, password)
+        
+        receiver_email = "jcardenas.lie@gmail.com"
+
+        subject = "Today's book at Packt"
+        
+        message = CreateMessage(subject, sender_email, receiver_email, **args)
+
+        server.sendmail(sender_email, receiver_email, message.as_string())
+
+    except Exception as e:
+        # Print any error messages to stdout
+        print(e)
+    finally:
+        server.quit() 
 
 def DateToISO(date):
     date = date.strftime("%c").split(" ")
@@ -148,7 +190,8 @@ def TodaysBook():
     }
     # print(data)
 
-    SendEmail(**data)
+    # SendSecureEmail(**data)
+    SendUnsecuredEmail(**data)
 
     return response.content
 
@@ -157,8 +200,11 @@ def sensor():
     TodaysBook()
     print("Email Send")
 
+# SCHEDULER ############################################################
+
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(sensor,'interval', days=1)
+# sched.add_job(sensor,'interval', days=0.5)
+sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
 sched.start()
 
 # ROUTES ############################################################
