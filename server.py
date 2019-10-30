@@ -193,8 +193,8 @@ def TodaysBook():
     }
     # print(data)
 
-    # SendSecureEmail(**data)
-    SendUnsecuredEmail(**data)
+    SendSecureEmail(**data)
+    # SendUnsecuredEmail(**data)
 
     return response.content
 
