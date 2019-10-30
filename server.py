@@ -155,10 +155,13 @@ def SendUnsecuredEmail(**args):
         server.quit() 
 
 def DateToISO(date):
+    
     date = date.strftime("%c").split(" ")
-    print(date)
+    
     newDate = date[0] + ', ' + date[2] + " " + date[1] + " " +date[4] + " " + date[3]
+    
     date = datetime.strptime(newDate, '%a, %d %b %Y %H:%M:%S')
+    
     return date.isoformat().split("T")[0]
 
 def TodaysBook():
@@ -175,7 +178,7 @@ def TodaysBook():
     
     response = requests.get(url)
 
-    product_id = json.loads(response.content)['data'][0]['productId']; print(product_id)
+    product_id = json.loads(response.content)['data'][0]['productId'];
 
     url = "https://static.packt-cdn.com/products/{}/summary".format(product_id)
     
@@ -191,19 +194,22 @@ def TodaysBook():
         'about': book['about'],
         'features' : book['features']
     }
-    # print(data)
+    
+    print("Send Email")
 
     SendSecureEmail(**data)
     # SendUnsecuredEmail(**data)
 
     return response.content
 
-def sensor():
-    """ Function for test purposes. """
-    TodaysBook()
-    print("Email Send")
-
 # SCHEDULER ############################################################
+
+def sensor():
+    TodaysBook()
+    # print("Email Send")
+
+def sensor_test():
+    print("Test")
 
 sched = BackgroundScheduler(daemon=True)
 sched.add_job(sensor,'interval', seconds=10)
@@ -211,6 +217,7 @@ sched.add_job(sensor,'interval', seconds=10)
 sched.start()
 
 # ROUTES ############################################################
+
 @app.route('/')
 def hello_world():
     return "Hello World"
@@ -220,5 +227,8 @@ def freeLearning():
     return TodaysBook()
 
 # RUN ############################################################
+
+## TODO stop scheduler after server exits
+
 if __name__ == '__main__':
     app.run(debug = True)
