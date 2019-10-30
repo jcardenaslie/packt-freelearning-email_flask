@@ -118,12 +118,15 @@ def SendSecureEmail(**args):
 def SendUnsecuredEmail(**args):
     smtp_server = "smtp-relay.sendinblue.com"
     # smtp_server = "smtp.gmail.com"
+    smtp_server = "smtp-mail.outlook.com"
 
     port = 587  # For starttls
 
-    sender_email = "jcardenas.lie@gmail.com"
+    # sender_email = "jcardenas.lie@gmail.com"
+    sender_email = "jquin_cardenas@hotmail.com"
     
-    password = "9C5afg6k2D0AUnN1"
+    password = "c4f3t0rtug4sc0tt"
+    # password = "9C5afg6k2D0AUnN1"
     # password = "cafetortugascott"
 
     # Create a secure SSL context
@@ -203,8 +206,8 @@ def sensor():
 # SCHEDULER ############################################################
 
 sched = BackgroundScheduler(daemon=True)
-# sched.add_job(sensor,'interval', days=0.5)
-sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
+sched.add_job(sensor,'interval', seconds=10)
+# sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
 sched.start()
 
 # ROUTES ############################################################
