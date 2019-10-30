@@ -116,18 +116,18 @@ def SendSecureEmail(**args):
         )
 
 def SendUnsecuredEmail(**args):
-    smtp_server = "smtp-relay.sendinblue.com"
-    # smtp_server = "smtp.gmail.com"
-    smtp_server = "smtp-mail.outlook.com"
+    # smtp_server = "smtp-relay.sendinblue.com"
+    smtp_server = "smtp.gmail.com"
+    # smtp_server = "smtp-mail.outlook.com"
 
     port = 587  # For starttls
 
-    # sender_email = "jcardenas.lie@gmail.com"
-    sender_email = "jquin_cardenas@hotmail.com"
+    sender_email = "jcardenas.lie@gmail.com"
+    # sender_email = "jquin_cardenas@hotmail.com"
     
     password = "c4f3t0rtug4sc0tt"
     # password = "9C5afg6k2D0AUnN1"
-    # password = "cafetortugascott"
+    # # password = "cafetortugascott"
 
     # Create a secure SSL context
     context = ssl.create_default_context()
