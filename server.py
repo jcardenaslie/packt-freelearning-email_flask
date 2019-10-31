@@ -246,8 +246,8 @@ def tick():
 
 sched = BackgroundScheduler(daemon=True)
 # sched.add_job(tick,'interval', seconds=10)
-sched.add_job(sensor,'interval', seconds=30)
-# sched.add_job(sensor_test, 'cron', day_of_week='mon-sun', hour=11, minute=30)
+# sched.add_job(sensor,'interval', seconds=30)
+sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
 sched.start()
 
 atexit.register(lambda: sched.shutdown())
