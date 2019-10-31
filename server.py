@@ -1,4 +1,5 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 from flask import Flask
 import requests
 from datetime import date, timedelta, datetime
@@ -9,9 +10,26 @@ import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+import importlib
+spam_spec = importlib.util.find_spec("config")
+found = spam_spec is not None
+
+if found:
+    import config
+    print("Using config file")
+    SENDGRID_API_KEY = config.SENDGRID_API_KEY
+    SENDGRID_API_NAME = config.SENDGRID_API_NAME
+else:
+    import os
+    print("Using env")
+    SENDGRID_API_KEY = os.environ['SENDGRID_API_KEY']
+    SENDGRID_API_NAME = os.environ['SENDGRID_API_NAME']
+        
+
 app = Flask(__name__)
 
 # FUNCTIONS ############################################################
+
 def CreateMessage(subject, sender, receiver, **args):
     message = MIMEMultipart("alternative")
     message["Subject"] = subject
@@ -91,14 +109,23 @@ def CreateMessage(subject, sender, receiver, **args):
     return message
 
 def SendSecureEmail(**args):
+    
+    # SMTP CONFIG #####################
+
     # port = 587  # For SSL
     port = 465  # For SSL
     
     # password = input("Type your password and press enter: ")
+    # sender_email = "jcardenas.lie@gmail.com"
     sender_email = "jcardenas.lie@gmail.com"
 
     # password = "9C5afg6k2D0AUnN1"
-    password = "cafetortugascott"
+    # password = "cafetortugascott"
+    # password = "cafetortugascott"
+
+    server = "smtp.sendgrid.net"
+        
+    # EMAIL CONFIG #####################
 
     receiver_email = "jcardenas.lie@gmail.com"
 
@@ -108,9 +135,9 @@ def SendSecureEmail(**args):
     context = ssl.create_default_context()
 
     message = CreateMessage(subject, sender_email, receiver_email, **args)
-    
-    with smtplib.SMTP_SSL("smtp-relay.sendinblue.com", port, context=context) as server:
-        server.login(sender_email, password)
+    print( SENDGRID_API_KEY, SENDGRID_API_NAME )
+    with smtplib.SMTP_SSL(server, port, context=context) as server:
+        server.login(SENDGRID_API_NAME, SENDGRID_API_KEY )
         server.sendmail(
             sender_email, receiver_email, message.as_string()
         )
@@ -158,7 +185,13 @@ def DateToISO(date):
     
     date = date.strftime("%c").split(" ")
     
-    newDate = date[0] + ', ' + date[2] + " " + date[1] + " " +date[4] + " " + date[3]
+    if date[2] == '':
+        newDate = date[0] + ', ' + date[3] + " " + date[1] + " " +date[5] + " " + date[4]
+    elif date[2] != '':
+        newDate = date[0] + ', ' + date[2] + " " + date[1] + " " +date[4] + " " + date[3]
+
+    print(date)
+    print(newDate)
     
     date = datetime.strptime(newDate, '%a, %d %b %Y %H:%M:%S')
     
@@ -178,7 +211,7 @@ def TodaysBook():
     
     response = requests.get(url)
 
-    product_id = json.loads(response.content)['data'][0]['productId'];
+    product_id = json.loads(response.content)['data'][0]['productId']
 
     url = "https://static.packt-cdn.com/products/{}/summary".format(product_id)
     
@@ -195,7 +228,7 @@ def TodaysBook():
         'features' : book['features']
     }
     
-    print("Send Email")
+    print('Send Email! The time is: %s' % datetime.now())
 
     SendSecureEmail(**data)
     # SendUnsecuredEmail(**data)
@@ -208,13 +241,16 @@ def sensor():
     TodaysBook()
     # print("Email Send")
 
-def sensor_test():
-    print("Test")
+def tick():
+    print('Tick! The time is: %s' % datetime.now())
 
 sched = BackgroundScheduler(daemon=True)
-sched.add_job(sensor,'interval', seconds=10)
-# sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
+# sched.add_job(tick,'interval', seconds=10)
+sched.add_job(sensor,'interval', seconds=30)
+# sched.add_job(sensor_test, 'cron', day_of_week='mon-sun', hour=11, minute=30)
 sched.start()
+
+atexit.register(lambda: sched.shutdown())
 
 # ROUTES ############################################################
 
@@ -228,7 +264,8 @@ def freeLearning():
 
 # RUN ############################################################
 
-## TODO stop scheduler after server exits
-
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(
+        debug = True, 
+        use_reloader=False
+        )
