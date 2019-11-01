@@ -21,11 +21,15 @@ if found:
     print("Using config file")
     SENDGRID_API_KEY = config.SENDGRID_API_KEY
     SENDGRID_API_NAME = config.SENDGRID_API_NAME
+    SEND_EMAIL_HOUR = config.SEND_EMAIL_HOUR
+    SEND_EMAIL_PMAM = config.SEND_EMAIL_PMAM
 else:
     import os
     print("Using env")
     SENDGRID_API_KEY = os.environ['SENDGRID_API_KEY']
     SENDGRID_API_NAME = os.environ['SENDGRID_API_NAME']
+    SEND_EMAIL_HOUR = os.environ['SEND_EMAIL_HOUR'] 
+    SEND_EMAIL_PMAM = os.environ['SEND_EMAIL_PMAM'] 
 
 # FUNCTIONS ############################################################
 
@@ -241,10 +245,10 @@ sched = BlockingScheduler()
 def timed_job():
     print('This job is run every three minutes.: %s' % datetime.now())
 
-@sched.scheduled_job('cron', day_of_week='mon-sun', hour=18)
+@sched.scheduled_job('cron', day_of_week='mon-sun', hour=SEND_EMAIL_HOUR)
 def scheduled_job():
     TodaysBook()
-    print('This job is run every weekday at 5pm.: %s' % datetime.now())
+    print('This job is run every weekday at ' + str(SEND_EMAIL_HOUR) + str(SEND_EMAIL_PMAM) + ': %s' % datetime.now())
 
 atexit.register(lambda: sched.shutdown())
 
