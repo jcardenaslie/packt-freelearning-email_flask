@@ -244,13 +244,13 @@ def sensor():
 def tick():
     print('Tick! The time is: %s' % datetime.now())
 
-sched = BackgroundScheduler(daemon=True)
+# sched = BackgroundScheduler(daemon=True)
 # sched.add_job(tick,'interval', seconds=10)
 # sched.add_job(sensor,'interval', seconds=30)
-sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
-sched.start()
+# sched.add_job(sensor, 'cron', day_of_week='mon-sun', hour=11, minute=30)
+# sched.start()
 
-atexit.register(lambda: sched.shutdown())
+# atexit.register(lambda: sched.shutdown())
 
 # ROUTES ############################################################
 
